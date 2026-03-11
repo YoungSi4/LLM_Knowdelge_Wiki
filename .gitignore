@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+venv/
+.venv/
+env/
+__pycache__/
+
+# Build & OS
+dist/
+build/
+out/
+[Bb]in/
+[Oo]bj/
+*.exe
+*.dll
+*.so
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+.vs/
+*.swp
+*.swo
+
+# Secrets
+.env
+.env.local
+*.pem

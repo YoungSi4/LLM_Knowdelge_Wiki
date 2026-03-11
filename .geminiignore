@@ -1,0 +1,33 @@
+# .gitignore에 있는 항목들을 포함하여 AI의 분석을 제외합니다.
+node_modules/
+venv/
+.venv/
+.git/
+.vs/
+
+# 대용량 및 바이너리 파일 (토큰 절약 및 속도 향상)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+*.zip
+*.tar.gz
+*.mp4
+*.mp3
+
+# 대규모 잠금 파일 (의존성 구조를 명시적으로 요청할 때만 분석하도록 제외)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 로그 및 임시 파일
+*.log
+docs/
+site/
+tmp/
+
+# 압축된 파일
+*.min.js
+*.min.css
