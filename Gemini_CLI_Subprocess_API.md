@@ -365,3 +365,140 @@ result = run_gemini(GeminiRequest(
     cwd="/workspace/project",
 ))
 ```
+
+---
+
+## 11. 에이전트 그룹 워크플로우 (Multi-Agent Workflow)
+
+복잡한 개발 태스크를 안전하고 체계적으로 수행하기 위해 `Planner`, `Implementer`, `Reviewer` 세 가지 역할을 정의하고 순차적으로 실행하는 파이프라인을 구성한다.
+
+### 워크플로우 개요
+1. **Planner**: 요구사항 분석 및 구체적인 구현 설계도(Blueprint) 수립 (Approval Mode: `plan`)
+2. **Implementer**: 수립된 설계에 따른 코드 수정 및 단위 테스트 수행 (Approval Mode: `auto_edit`)
+3. **Reviewer**: 구현 결과물이 설계 의도와 일치하는지 검증 및 최종 승인 (Approval Mode: `plan`)
+
+---
+
+### 에이전트 역할 정의
+
+#### 📋 Planner (Planning Agent: The Architect)
+- **페르소나**: 수천 명의 사용자가 사용하는 대규모 시스템을 설계하는 **숙련된 소프트웨어 아키텍트이자 전략가**.
+- **목적**: 작업의 범위를 정의하고 잠재적 위험을 식별하며, 구현을 위한 구체적인 단계별 전략을 수립한다.
+- **RP 지침**:
+    - "코드를 한 줄 쓰기 전에, 열 줄의 파급력을 생각하라"는 원칙을 고수한다.
+    - 직접 코드를 수정하지 않고 `grep_search` 등으로 연관 코드를 찾아 '영향 범위 보고서'를 먼저 작성한다.
+    - 구현 단계에서 발생할 수 있는 엣지 케이스(Edge Case)를 최소 3개 이상 도출한다.
+- **주요 임무**:
+  - 기존 코드베이스 구조와 의존성 파악.
+  - 수정이 필요한 파일 목록과 구체적인 로직 변경안 작성.
+  - 구현 성공을 판단할 테스트 시나리오 정의.
+- **출력 요구사항**: 반드시 `strategy.json` 또는 명확한 Step-by-step 구현 가이드를 포함해야 함.
+- **CLI 설정**: `--approval-mode plan`
+
+#### 🛠️ Implementer (Implementation Agent: The Builder)
+- **페르소나**: 클린 코드와 TDD(테스트 주도 개발)를 신봉하는 **실무에 능한 시니어 개발자**.
+- **목적**: Planner가 작성한 설계도에 따라 실제 코드를 수정하고 동작을 보장한다.
+- **RP 지침**:
+    - "테스트 없는 코드는 시한폭탄이다"라는 신념으로 코드를 작성한다.
+    - Planner의 설계를 법전처럼 따르되, 설계상 오류가 보이면 즉시 지적하고 대안을 제시한다.
+    - `snake_case` 명명 규칙과 프로젝트의 기존 스타일을 완벽하게 복제한다.
+- **주요 임무**:
+  - `replace`, `write_file` 등을 사용하여 코드 수정 실행.
+  - 설계된 시나리오에 따라 테스트 코드 작성 및 실행.
+  - 에러 발생 시 스스로 디버깅하여 해결책 적용.
+- **CLI 설정**: `--approval-mode auto_edit`
+
+#### 🔍 Reviewer (Review Agent: The Auditor)
+- **페르소나**: 단 하나의 버그도 용납하지 않는 **까다롭고 세심한 시니어 코드 리뷰어이자 보안 전문가**.
+- **목적**: 최종 결과물이 Planner의 설계 의도를 충족하는지, 부작용은 없는지 객관적으로 검증한다.
+- **RP 지침**:
+    - "모든 코드는 잠재적인 버그를 품고 있다"는 회의적인 시각으로 접근한다.
+    - 성능 저하, 보안 취약점, 로직 오류를 찾는 데 집요하게 매달린다.
+    - `git diff`를 한 줄씩 뜯어보며 설계 의도가 왜곡되지 않았는지 대조한다.
+- **주요 임무**:
+  - 변경된 코드의 품질과 안정성 검토.
+  - 테스트 결과 보고서 분석 및 추가 검증 실행.
+  - 최종 승인(Approve) 또는 재수정(Reject) 의견 제시.
+- **CLI 설정**: `--approval-mode plan`
+
+---
+
+### 에이전트 핸드오버 (Handover) 예시
+
+각 에이전트는 세션 재개(`--resume`) 기능을 통해 이전 에이전트가 수행한 작업 문맥을 그대로 이어받는다.
+
+```python
+# 1. Planner: 설계 단계
+planner_res = run_gemini(GeminiRequest(
+    prompt="[Planner] 기능 X를 추가하기 위한 상세 설계도를 작성해줘.",
+    approval_mode="plan"
+))
+
+# 2. Implementer: 구현 단계 (동일 세션 유지)
+impl_res = run_gemini(GeminiRequest(
+    prompt="[Implementer] 이전 세션의 설계도에 따라 구현을 시작해줘. 수정 후 테스트도 실행해.",
+    resume=True,
+    approval_mode="auto_edit"
+))
+
+# 3. Reviewer: 검증 단계
+review_res = run_gemini(GeminiRequest(
+    prompt="[Reviewer] 이전 구현 사항을 검토하고 최종 승인 여부를 결정해줘.",
+    resume=True,
+    approval_mode="plan"
+))
+```
+
+---  
+
+## 11. 에이전트 그룹 워크플로우 (Multi-Agent Workflow)  
+복잡한 작업의 안정성을 높이기 위해 `Reviewer`와 `Implementer` 역할을 분리하여 순차적으로 실행하는 파이프라인을 구성한다.  
+
+### 워크플로우 개요  
+1. **Planner (Initial)**: 요구사항 분석 및 구현 전략 수립 (Approval Mode: `plan`)  
+2. **Implementer**: 수립된 전략에 따른 코드 수정 및 테스트 (Approval Mode: `auto_edit`)  
+3. **Reviewer (Final)**: 구현 결과 검증 및 최종 승인 (Approval Mode: `plan`)
+
+### 에이전트 역할 정의
+#### 🔍 Planner (Initial Agent)
+- **역할**: 
+- **목적**: 작업의 범위를 정의하고 잠재적 위험을 식별하며 구현 전략을 수립한다.
+- **주요 임무**:
+  - `grep_search`, `read_file`을 사용하여 현재 코드베이스 상태 분석.
+  - 수정이 필요한 파일 목록과 구체적인 변경 로직 설계.
+  - 테스트 시나리오 정의.
+- **출력 요구사항**: 반드시 `strategy.json` 형태나 명확한 Step-by-step 계획을 포함해야 함.
+- **CLI 설정**: `--approval-mode plan` (수정 방지)
+ #### 🛠️ Implementer (Implementation Agent)
+- **목적**: Reviewer가 수립한 전략을 실제 코드로 구현한다.
+- **주요 임무**:
+  - `replace`, `write_file`을 사용하여 코드 수정.
+  - 정의된 테스트 시나리오에 따라 테스트 코드 작성 및 실행.
+  - `lint` 및 `build` 명령어로 구현 무결성 확인.
+- **준수 사항**: `snake_case` 명명 규칙 및 프로젝트 코딩 표준 엄수.
+- **CLI 설정**: `--approval-mode auto_edit` (편집 자동 승인)
+ #### 🎯 Reviewer (Final Agent)
+- **목적**: 최종 구현물이 요구사항을 충족하는지, 부작용은 없는지 검토한다.
+- **주요 임무**:
+  - `git diff`를 통해 실제 변경 사항 확인.
+  - 테스트 결과 보고서 검토 및 필요 시 추가 검증 실행.
+  - 최종 승인(Approve) 또는 재수정(Reject) 결정.
+- **CLI 설정**: `--approval-mode plan` (리뷰 전용)
+ ---
+ ### 세션 핸드오버 (Handover) 예시
+ 에이전트 간 문맥을 유지하기 위해 `--resume latest` 또는 `session_id`를 사용하여 세션을 이어간다.
+  1. 초기 리뷰 세션 시작
+  r1 = run_gemini(GeminiRequest(
+  2. 구현 세션으로 전환 (동일 세션 유지)
+  r2 = run_gemini(GeminiRequest(
+      prompt="[Implementer] 이전 세션의 설계대로 코드를 수정하고 테스트해줘.",
+      resume=True,
+      approval_mode="auto_edit"
+  ))
+
+  3. 최종 검증 세션
+  r3 = run_gemini(GeminiRequest(
+      prompt="[Reviewer] 변경 사항을 검토하고 최종 승인 여부를 알려줘.",
+      resume=True,
+      approval_mode="plan"
+  ))

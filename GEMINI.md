@@ -1,9 +1,10 @@
-# 🤖 Gemini CLI 프로젝트 가이드라인 (Universal)
+# Gemini CLI 프로젝트 가이드라인 (Universal)
 
 이 문서는 모든 작업 시 준수해야 할 핵심 원칙을 정의합니다. 
 특정 프로젝트의 요구사항이 명시되지 않은 경우, 아래 지침을 최우선으로 따릅니다.
 
 ## 1. 프로젝트 상황 및 환경 (Contextual Adaptability)
+- **반드시 포함할 것**: Gemini_CLI_Subprocess_API.md 문서를 확인하여 동작할 것.
 - **가변성 허용**: 작업 시작 시 현재 디렉토리의 설정 파일(`package.json`, `requirements.txt`, `go.mod` 등)을 분석하여 기술 스택과 환경을 스스로 파악할 것.
 - **도구 우선순위**: 프로젝트 내부에 설정된 린터(Linter), 포맷터(Formatter), 테스트 러너가 있다면 에이전트의 기본 도구보다 해당 도구를 우선하여 사용할 것.
 
