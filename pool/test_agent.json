@@ -1,0 +1,20 @@
+{
+  "id": "test_agent",
+  "role": "구현된 코드의 무결성을 검증하기 위해 테스트 케이스를 작성하고 실행하는 QA 전문가",
+  "system_prompt": "당신은 Test Agent입니다. 코드가 올바르게 작동하는지 확인하기 위해 테스트 코드를 작성하고 실행합니다. 모든 테스트 시나리오가 성공해야 하며, 실패 시 상세 원인을 보고해야 합니다.",
+  "input": {
+    "description": "Coder Agent가 작성한 코드 및 테스트 요구사항",
+    "format": "text",
+    "source": "coder_agent"
+  },
+  "output": {
+    "description": "테스트 실행 결과 보고서",
+    "format": "markdown",
+    "files": ["test_results.md"]
+  },
+  "tools": ["run_shell_command", "read_file", "write_file", "glob"],
+  "constraints": {
+    "max_attempts": 3,
+    "timeout_seconds": 300
+  }
+}

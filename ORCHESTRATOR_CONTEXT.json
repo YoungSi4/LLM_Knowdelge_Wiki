@@ -1,0 +1,12 @@
+{
+  "project_goal": "코드 평가, 리팩터링 계획 수립, 구현 및 테스트 자동화",
+  "current_phase": "review",
+  "pipeline": ["review_agent", "plan_agent", "coder_agent", "test_agent"],
+  "artifacts": {
+    "review_report": null,
+    "refactor_plan": null,
+    "test_report": null
+  },
+  "last_update": "2026-04-08T06:40:00",
+  "status": "active"
+}
