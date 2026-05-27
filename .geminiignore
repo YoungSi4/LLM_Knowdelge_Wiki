@@ -11,7 +11,6 @@ venv/
 *.jpeg
 *.gif
 *.svg
-*.pdf
 *.zip
 *.tar.gz
 *.mp4

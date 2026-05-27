@@ -7,28 +7,68 @@
 **언어**: 출력은 반드시 한글로 할 것.
 **역할**: 당신은 Orchestrator이기 때문에 pool/*.json의 에이전트 정의를 읽고, 목표에 맞는 에이전트를 선택하여 실행해야합니다. 에이전트 결과는 반드시 독립 subprocess를 통해 실행되고, 생성되어야 합니다.
 
-## 1. 프로젝트 상황 및 환경 (Contextual Adaptability)
-- **반드시 포함할 것**: Gemini_CLI_Subprocess_API.md 문서를 확인하여 동작할 것. 해당 문서는 /pool/에 위치.
-- **가변성 허용**: 작업 시작 시 현재 디렉토리의 설정 파일(`package.json`, `requirements.txt`, `go.mod` 등)을 분석하여 기술 스택과 환경을 스스로 파악할 것.
-- **도구 우선순위**: 프로젝트 내부에 설정된 린터(Linter), 포맷터(Formatter), 테스트 러너가 있다면 에이전트의 기본 도구보다 해당 도구를 우선하여 사용할 것.
+# Gemini.md
 
-## 2. 코딩 표준 및 스타일 (Universal Standards)
-- **명명 규칙 (Naming)**: 변수명, 함수명, 파일명 등 모든 식별자에 **`snake_case`**를 기본으로 사용함. (단, 프레임워크의 강제 규격이 있는 경우 그에 따름)
-- **타입 안전성**: 언어에서 지원하는 경우(Type Hints, TypeScript 등) 반드시 타입을 명시하여 코드의 안정성을 확보함.
-- **방어적 코딩**: 예외 처리를 누락하지 않으며, 외부 입출력이나 API 호출 시 발생할 수 있는 에러 케이스를 철저히 고려함.
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-## 3. 에이전트 작동 원칙 (Operational Principles)
-- **선 조사, 후 실행 (Research First)**: 코드를 수정하기 전 반드시 `grep_search`와 `glob`을 사용하여 프로젝트의 기존 패턴, 의존성, 구조를 먼저 파악할 것.
-- **최소 침습 수정 (Surgical Edits)**: 요청받은 기능과 무관한 코드의 리팩토링이나 "청소" 작업은 지양하며, 변경 범위를 최소화하여 사이드 이펙트를 방지함.
-- **철저한 검증 (Empirical Validation)**: 
-  - 버그 수정 시: 수정 전 반드시 재현(Reproduction) 스크립트를 작성하여 문제를 증명함.
-  - 기능 추가 시: 구현 후 반드시 테스트 코드를 작성하거나 실행하여 정상 작동을 확인함.
-  - 변경 완료 후: 전체 빌드나 린트 명령을 실행하여 회귀 오류가 없는지 최종 점검함.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-## 4. 보안 및 안전 (Security & Safety)
-- **민감 정보 보호**: `.env`, 비밀키, 인증서 등이 포함된 파일은 절대 출력하거나 로그에 남기지 않으며, `.gitignore`에 등록된 파일은 엄격히 보호함.
-- **신중한 커밋**: 명시적인 요청이 없는 한 `git add`나 `git commit`을 수행하지 않으며, 제안 시에는 반드시 `git diff` 결과와 함께 변경 이유를 설명함.
+## 1. Think Before Coding
 
-## 5. 소통 가이드 (Communication)
-- **기술적 직설**: 서술적인 미사여구는 생략하고, 의도와 기술적 근거 위주로 간결하게 답변할 것.
-- **단계별 보고**: 대규모 작업 시 [조사 결과] -> [수정 전략] -> [수정 및 검증 결과] 순으로 명확히 구분하여 보고할 것.
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
+
+## 2. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+
+## 3. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
+
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
+
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
