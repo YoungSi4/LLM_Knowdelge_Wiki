@@ -24,7 +24,9 @@ def run_agent(agent_name, prompt):
     # stdin=subprocess.DEVNULL을 사용하여 입력을 기다리지 않도록 합니다.
     result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", stdin=subprocess.DEVNULL)
     if result.returncode != 0:
-        log(f"Error running agent {agent_name}: {result.stderr}")
+        err_msg = f"[ERROR_SIGNAL] Agent {agent_name} failed. Reason: {result.stderr.strip()}"
+        print(err_msg)
+        log(err_msg)
         return None
     
     try:
@@ -34,11 +36,15 @@ def run_agent(agent_name, prompt):
         if content:
             return content
         else:
-            log(f"No content found in agent {agent_name} response.")
-            return result.stdout # 폴백
-    except json.JSONDecodeError:
-        log(f"Failed to parse JSON from agent {agent_name}. Returning raw output.")
-        return result.stdout
+            err_msg = f"[ERROR_SIGNAL] No content found in agent {agent_name} response."
+            print(err_msg)
+            log(err_msg)
+            return None
+    except json.JSONDecodeError as e:
+        err_msg = f"[ERROR_SIGNAL] Failed to parse JSON from agent {agent_name}. Reason: {str(e)}"
+        print(err_msg)
+        log(err_msg)
+        return None
 
 def build_wiki_pipeline(pdf_path):
     file_name = os.path.basename(pdf_path)
@@ -62,13 +68,25 @@ def build_wiki_pipeline(pdf_path):
     # 3. Compile (Writer)
     log("Step 3: Compiling wiki content...")
     final_md = run_agent("wiki_writer", f"계획: {plan}\n\n원본 내용: {raw_content[:4000]}")
-    if not final_md: return
+    if not final_md: 
+        print(f"[ERROR_SIGNAL] Pipeline aborted at Step 3 due to Writer Agent failure.")
+        return
     
-    # 4. Save
+    # 4. Save (Atomic Write)
     output_path = f"wiki/{base_name}.md"
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(final_md)
-    log(f"Step 4: Wiki page created at {output_path}")
+    tmp_path = f"wiki/{base_name}.tmp.md"
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.write(final_md)
+        os.replace(tmp_path, output_path)
+        log(f"Step 4: Wiki page successfully committed at {output_path}")
+    except Exception as e:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        err_msg = f"[ERROR_SIGNAL] Atomic write failed for {output_path}. Rolled back. Reason: {str(e)}"
+        print(err_msg)
+        log(err_msg)
+        return
     
     # 5. Clean up
     os.remove(raw_md_path)
