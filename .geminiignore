@@ -30,3 +30,20 @@ tmp/
 # 압축된 파일
 *.min.js
 *.min.css
+
+# LLM 자동 컨텍스트 수집 방지 (app.py에서 명시적으로 읽어 prompt로 주입함)
+raw/
+wiki/
+
+# 과거 과제 및 타 프로젝트 폴더 차단 (Direction A: Blacklist)
+AgentMEMO/
+assignment_2/
+not_used_past/
+demo/
+harness/WIKI_PIPELINE_SPEC.md
+Claude_CLI_Subprocess_API.md
+wiki_build.log
+*.py
+schema/
+tools/
+README.md

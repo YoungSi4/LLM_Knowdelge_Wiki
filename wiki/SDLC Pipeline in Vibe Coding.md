@@ -1,38 +1,36 @@
 # SDLC Pipeline in Vibe Coding
 
-[[Vibe Coding]]의 한계를 극복하기 위한 SDLC 단계별 자동화 체계 및 [[Spec Driven Development]] 기반 프레임워크를 기술한다.
+Vibe Coding 패러다임에서의 시스템 분석 및 설계 가이드라인. 단순히 코드를 생성하는 것을 넘어, 체계적인 소프트웨어 개발 생명주기(SDLC)를 AI와 함께 수행하는 방식을 다룹니다.
 
-## 1. SDLC 재구성 및 단계별 원칙
-| 단계 | 핵심 작업 | AI/에이전트 역할 |
+## 1. Vibe Coding vs Agentic Coding
+Vibe Coding의 한계를 극복하기 위해 Agentic Coding으로 진화하고 있습니다.
+
+| 특성 | Vibe Coding | Agentic Coding |
 | :--- | :--- | :--- |
-| **Planning** | 요구사항 명세(PRD/SRS) | Feasibility 분석 및 자원 최적화 |
-| **Analysis** | 모델링 및 아키텍처 설계 | 도메인 엔티티 정의, 상호작용 설계 |
-| **Design** | 구현 명세 (Interface/Spec) | 구체적 동작 설계 및 테스트 케이스 정의 |
-| **Implementation** | 자동화된 코딩 및 테스트 | 에이전트 기반 생성 및 검증(CI/CD) |
+| **접근 방식** | One-Shot Generation | Description per each Agent |
+| **문서화** | PRD/SRS 생략 혹은 단순 붙여넣기 | 상세 Prompt + PRD/SRS 기반 |
+| **인간의 역할** | Prompt Engineering | Orchestrator |
+| **에이전트 구조** | Single Conversation | Sequential / Multi-Agent |
+| **적합한 규모** | Small-Size Application | Large-Scale Product |
 
-## 2. SDLC 파이프라인 워크플로우
-```mermaid
-graph TD
-    A[Planning: PRD/SRS] --> B[Analysis: Architecture]
-    B --> C[Design: Spec Definition]
-    C --> D[Implementation: AI Generation]
-    D --> E{Verification Loop}
-    E -->|Fail| D
-    E -->|Pass| F[Release/Deployment]
-```
+## 2. SDLC 단계별 접근 (Vibe/Agentic)
 
-## 3. Agentic Coding으로의 전환 (패턴)
-* **Single Agent**: 단일 단순 작업.
-* **Sequential Agent**: SDLC 단계별 순차 처리에 최적 (예: 분석 → 설계 → 구현).
-* **Parallel Agent**: Research/디자인 단계에서 독립적 모듈 동시 처리.
+### Planning & Analysis
+- **목적**: 무엇을 왜 만드는가 (Business Need, Feasibility).
+- **작업**: PRD(Product Requirements Document) 우선 작성.
+- **도구**: [[Plan Mode and Sequential Agents]] 활용하여 단계별 작업 분해.
 
-## 4. 참조 링크
-* [[Vibe Coding and Agent Coding]]
-* [[Spec Driven Development]]
-* [[Agentic Coding]]
+### Design & Implementation
+- **원칙**: Spec-Driven Development (Spec First, Code Later).
+- **프로세스**: 요구사항 명세(SRS)를 LLM과 논의 후 구현.
+- **검증**: [[Loop and Hooks]]를 통해 피드백 루프 형성.
+
+## 3. 에이전트 구조
+복잡한 시스템 구현을 위해 다음과 같은 에이전트 패턴을 적용합니다.
+
+- **Single Agent**: 명확하고 구조화된 요청 기반 작업.
+- **Sequential Agent**: 독립적 단계의 순차 실행 (예: Analysis -> Design -> Implementation).
+- **Parallel Agent**: 전문화된 서브 에이전트의 동시 작업 (예: Research/WebSearch 단계).
 
 ---
-**Source**: `raw/2. SDLC pipeline in Vibe coding.pdf`
-**Compiled by**: Knowledge Architect
-**Date**: 2026-05-20
-
+*Raw Source: 2. SDLC pipeline in Vibe coding.pdf*

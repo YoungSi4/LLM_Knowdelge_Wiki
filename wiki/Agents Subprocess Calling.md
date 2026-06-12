@@ -1,32 +1,35 @@
 # Agents Subprocess Calling
 
-[[Agentic Coding]] 환경에서의 서브프로세스 기반 에이전트 실행 정책 및 제어 기술을 기술한다.
+CLI 도구를 프로그래밍 방식으로 호출하여 에이전틱 코딩 시스템을 구축하는 기술적 기반입니다.
 
-## 1. 실행 방식 및 파라미터 구조
-| 구분 | 전달 방식 | 파이프라인 요소 |
-| :--- | :--- | :--- |
-| **명령어 전달** | Args/CLI | `-p <prompt>` |
-| **데이터 파이프** | `stdin` | `subprocess.run(..., input=prompt)` |
-| **결과 수신** | `stdout` | JSON 기반 자동 파싱 (예: `--format json`) |
+## 1. CLI 호출 방식
+CLI 도구(Gemini, Claude, Codex)를 파이썬 환경에서 제어하기 위한 두 가지 인터페이스:
 
-## 2. YOLO Mode (무제한 권한) 실행 정책
-| 도구 | 플래그 (Flag) | 위험성 및 권고 |
-| :--- | :--- | :--- |
-| **Claude** | `--dangerously-skip-permissions` | 실시간 검증 필수 |
-| **Gemini** | `--yolo` | 스테이징 환경에서만 권장 |
-| **Codex** | `--dangerously-bypass-approvals` | 샌드박스 제약 해제 시 주의 |
+1. **직접 실행 (Command-line Arguments)**: 명령 인자로 프롬프트를 전달 (Gemini 방식).
+2. **표준 입력 (stdin Pipe)**: 프롬프트를 파이프를 통해 전달 (Claude/Codex 방식).
 
-## 3. 세션 영속성 관리
-* **재개 (Resume)**: `--resume <session-id>`를 통한 Context 유지.
-* **휘발성 (Ephemeral)**: 테스트 목적으로 `--no-session` 또는 `--ephemeral` 사용.
-* **상태 확인**: `returncode == 0` 여부 및 JSON 응답 구조의 `status` 필드 검증.
+### 서브프로세스 호출 핵심 파라미터 (`subprocess.run`)
+| 파라미터 | 역할 |
+| :--- | :--- |
+| `input` | 프로세스의 `stdin`으로 문자열 전달 |
+| `capture_output` | `stdout`/`stderr` 캡처 |
+| `text` | 입출력을 `bytes` 대신 `str`로 처리 (`encoding="utf-8"`) |
+| `timeout` | 지정 시간 초과 시 `TimeoutExpired` 예외 발생 |
 
-## 4. 참조 링크
-* [[Agentic Coding]]
-* [[Agent Pool and Orchestrator]]
+## 2. 세션 관리 및 영속성
+에이전트와의 연속적인 작업(Multi-turn)을 위해 세션을 관리해야 합니다.
+
+- **Claude**: `--resume <session-id>` 활용.
+- **Codex**: `resume <session-id>` 활용.
+- **Gemini**: `--resume <index>` 또는 세션 리스트 확인 후 호출.
+
+> **주의**: `--ephemeral` 또는 `--no-session-persistence` 플래그는 세션 영속성을 제거하므로, 연속 작업 시 주의가 필요합니다.
+
+## 3. 에이전틱 코딩 파이프라인 설계
+단일 도구 활용을 넘어, 에이전트 간 협업을 위한 파이프라인 구축 시 고려 사항:
+- **Local File 접근**: 에이전트가 로컬 파일에 접근하도록 구성하는 메커니즘 (로컬 컨텍스트 전달).
+- **Session ID 관리**: 작업 단위별 세션 ID의 효율적 관리 및 복원.
+- **에이전트별 특성 대응**: 각 CLI 도구의 하드코딩된 호출 방식 및 JSON 포맷 대응.
 
 ---
-**Source**: `raw/3. Agents subprocess calling.pdf`
-**Compiled by**: Knowledge Architect
-**Date**: 2026-05-20
-
+*Raw Source: 3. Agents subprocess calling.pdf*
